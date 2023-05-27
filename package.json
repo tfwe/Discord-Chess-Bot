@@ -1,0 +1,21 @@
+{
+  "name": "discord-chess",
+  "version": "1.0.0",
+  "description": "A discord chess.js bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfwe/Discord-Chess-Bot.git"
+  },
+  "author": "tfw_e",
+  "license": "ISC",
+  "dependencies": {
+    "chess.js": "^1.0.0-beta.6",
+    "discord.js": "^14.11.0",
+    "pino": "^8.14.1",
+    "pino-pretty": "^10.0.0"
+  }
+}
