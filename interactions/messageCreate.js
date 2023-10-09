@@ -1,16 +1,14 @@
 const logger = require('../logger');
-const { clientId } = require('../config.json');
-const { ChannelType, PermissionsBitField } = require('discord.js');
-
+const { startGame } = require('../monte-carlo');
+const CLIENT_ID = process.env.CLIENT_ID
 module.exports = {
   name: 'messageCreate',
   async execute(message) {
-    const guild = message.guild;
     // Check if the bot has been mentioned
-    if (!message.mentions.has(clientId)) return;
-    
-    // Get the prompt from the message
-    const author = message.author.id
-    if (author == clientId) return;
+    if (!message.mentions.has(CLIENT_ID)) return;
+      await message.channel.sendTyping()
+      const game = await startGame()
+      logger.info(JSON.stringify(game))
+      await message.reply(`${game}`)
   }
 }

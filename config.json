@@ -1,7 +1,3 @@
 {
-  "token":"MTAzNzE5NzEzNTAzODM5MDMyMg.GEv-9j.jAc_a-SSPHLwQaM-lxORoMtA6i6p2GPyJnnV-w",
-  "guildIds":["738619445085339681","728382821697192096","1052313301587066940"],
-  "clientId":"1037197135038390322",
-  "botUsername":"Bento",
-  "ownerId":"187744229018042368"
+  "DEFAULT_ACTIVITY": "This is a default activity, change in config.json"
 }
