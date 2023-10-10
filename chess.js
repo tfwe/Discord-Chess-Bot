@@ -1,7 +1,7 @@
 const logger = require('./logger');
 const { Chess } = require('chess.js')
 
-function newGame() {
+async function newGame() {
   const chess = new Chess()
   const gameState = {
     turn: "white",
@@ -10,10 +10,10 @@ function newGame() {
   return gameState
 }
 
-function randomGame(fen) {
-  const gameState = {
-    result: "",
-    pgn: ""
+async function randomGame(fen) {
+  let gameState = {
+    result: null,
+    pgn: null
   }
   const chess = new Chess()
   if (fen)
@@ -47,7 +47,7 @@ function randomGame(fen) {
   return gameState
 }
 
-function getAvailableMoves(fen) {
+async function getAvailableMoves(fen) {
   const chess = new Chess()
   try {
     chess.load(fen)
@@ -59,37 +59,38 @@ function getAvailableMoves(fen) {
   }
 }
 
-function getLastMove(fen) {
-  const lastMove = {
-    move: "",
-    turn: "",
-  }
+async function getLastMove(fen) {
+  let lastMove 
   const chess = new Chess()
   try {
     chess.load(fen)
-    let undo = chess.undo()
-    lastMove.move = undo.san
-    lastMove.turn = (undo.color == "w") ? "white" : "black"
   }
   catch(error) {
     logger.error(error)
+    return lastMove
   }
+  let undo = chess.undo()
+  if (!undo) { // start of the game
+    return lastMove 
+  }
+  lastMove.move = undo.san
+  lastMove.turn = (undo.color == "w") ? "white" : "black"
   return lastMove
 }
 
-function applyMoves(fen, moves) {
-  try {
+async function applyMoves(fen, moves) {
+  // try {
     const chess = new Chess()
     chess.load(fen)
     for (let i of moves) {
       chess.move(i)
     }
-    fen = chess.fen() 
-  }
-  catch (error) {
-    logger.error(error)
-    fen = ""
-  }
+    fen = chess.fen()
+  // }
+  // catch (error) {
+  //   logger.error(error)
+  //   fen = ""
+  // }
   return fen
 }
 module.exports = { newGame, randomGame, getAvailableMoves, getLastMove, applyMoves }
