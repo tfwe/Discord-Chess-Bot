@@ -55,39 +55,8 @@ async function expansion(node=null) {
     }
     leafNodes.push(newNode)
   }
-  
   return leafNodes
 }
-
-// async function selection(leafNodes) {
-//   let selectedNode
-//   if (leafNodes.length > 1) {
-//     leafNodes.sort((a, b) => {
-//       aScore = a.timesPlayed - Math.sqrt(a.depth)
-//       bScore = b.timesPlayed - Math.sqrt(b.depth)
-//       if (a.timesPlayed == 0) {
-//         aScore += 1
-//       }
-//       if (b.timesPlayed == 0) {
-//         bScore += 1
-//       }
-//       if (aScore < bScore) {
-//         return -1
-//       }
-//       else if (aScore > bScore) {
-//         return 1
-//       }
-//       else {
-//         return 0
-//       }
-//     })
-//     selectedNode = leafNodes[leafNodes.length-1]
-//   } 
-//   else if (leafNodes.length == 1) {
-//     selectedNode = leafNodes[0]
-//   }
-//   return selectedNode
-// }
 
 async function selection(leafNodes) {
   let selectedNode
@@ -131,42 +100,66 @@ async function update(selectedNode, gameObj) {
 }
 
 async function pickBestMove(fen) {
+  logger.info(`finding best move from position ${fen}...`)
   let node = await fenToNode(fen)
-  let leafNodes
-  let selectedNode
-  let explored = []
-  leafNodes = await expansion(node)
-  if (leafNodes.length == 0) return
-  selectedNode = leafNodes[0]
+  logger.info(`initializing tree with root node ${JSON.stringify(node)}...`)
+  let leafNodes = await expansion(node)
+  logger.info(`exploring ${leafNodes.length} nodes...`)
   let count = 0
   while (leafNodes.length >= 1) {
-    selectedNode = await selection(leafNodes)
-    logger.info(JSON.stringify(selectedNode))
-    if (explored.includes(selectedNode)) {
-      let newNodes = await expansion(selectedNode)
-      if (!newNodes) {
-        let deleteIndex = leafNodes.indexOf(selectedNode)
-        leafNodes = leafNodes.slice(0, deleteIndex - 1).concat(leafNodes.slice(deleteIndex+1,leafNodes.length-1));
-      }
-      leafNodes = leafNodes.concat(newNodes)
+    for (let i of leafNodes) {
+      logger.debug(`simulating game from leaf ${JSON.stringify(i)}...`)
+      let gameObj = await simulation(i)
+      logger.debug(`updating leaf ${JSON.stringify(i)} with result: ${JSON.stringify(gameObj)}`)
+      await update(i, gameObj)
     }
-    else {
-      let gameObj = await simulation(selectedNode)
-      count += 1
-      await update(selectedNode, gameObj)
-      explored.push(selectedNode)
-    }
-    if (count >= 100) {
-      break
-    }
-  }
-  if (leafNodes)
-    selectedNode = await selection(leafNodes)
-  let currentNode = selectedNode
-  while (currentNode.parent) {
-    currentNode = currentNode.parent
+    let currentNode = await selection(leafNodes)
+    let newNodes = await expansion(currentNode)
+    count += 1
+    let index = leafNodes.indexOf(currentNode)
+    // replace expanded node with new leaf nodes
+    leafNodes = leafNodes.slice(0,index - 1).concat(newNodes.concat(leafNodes.slice(index+1, leafNodes.length - 1)))
+    if (count >= 1000) break
   }
   return currentNode.move
 }
+// async function pickBestMove(fen) {
+//   let node = await fenToNode(fen)
+//   let leafNodes
+//   let selectedNode
+//   let explored = []
+//   leafNodes = await expansion(node)
+//   if (leafNodes.length == 0) return
+//   selectedNode = leafNodes[0]
+//   let count = 0
+//   while (leafNodes.length >= 1) {
+//     selectedNode = await selection(leafNodes)
+//     logger.info(JSON.stringify(selectedNode))
+//     if (explored.includes(selectedNode)) {
+//       let newNodes = await expansion(selectedNode)
+//       if (!newNodes) {
+//         let deleteIndex = leafNodes.indexOf(selectedNode)
+//         leafNodes = leafNodes.slice(0, deleteIndex - 1).concat(leafNodes.slice(deleteIndex+1,leafNodes.length-1));
+//       }
+//       leafNodes = leafNodes.concat(newNodes)
+//     }
+//     else {
+//       let gameObj = await simulation(selectedNode)
+//       count += 1
+//       await update(selectedNode, gameObj)
+//       explored.push(selectedNode)
+//     }
+//     if (count >= 100) {
+//       break
+//     }
+//   }
+//   if (leafNodes)
+//     selectedNode = await selection(leafNodes)
+//   let currentNode = selectedNode
+//   while (currentNode.parent) {
+//     currentNode = currentNode.parent
+//   }
+//   return currentNode.move
+// }
 
 module.exports = { pickBestMove }
